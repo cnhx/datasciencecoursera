@@ -49,3 +49,17 @@ while(TRUE){
         }
 }
 
+## Another approach to collect the data.
+dfsteamrepo <-data.frame()
+rawReviews <-data.frame()
+num = 20
+while(num<=100){  #Set limit
+        repos<- fromJSON(paste0(url_steam,'/',appid,'?json=1?offset=',num))
+        cat("Offset now is", num)
+        reviews <- repos$reviews
+        flatten(reviews,recursive = TRUE)
+        # dfsteamrepo <- c(dfsteamrepo,steamrepo$reviews) 
+        rownames(repos$reviews) <-make.names(c(num:(num+19)),unique = TRUE) #Try to solve dumplicate row name issue
+        rawReviews <- rbind(rawReviews,repos$reviews)
+        num <- num + 20
+}
