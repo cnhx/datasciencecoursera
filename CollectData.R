@@ -3,6 +3,8 @@
 library(tidyverse)
 library(httr)
 library(jsonlite)
+library(plyr)
+library(dplyr)
 
 #Save appid
 appid <- 570
@@ -35,31 +37,24 @@ dfrepo <- as.data.frame(repo_content)
 repo_reviews <- repo_content$reviews
 repo_reviews <-as.data.frame(repo_reviews)
 
-dfsteamrepo <-list()
-while(TRUE){
-        num = 20
-        steamrepo <-repos <- GET(url = paste0(url_steam,'/',appid,'?json=1?offset=',num))
-        print("Offset now is ", num)
-        if(status_code(steamrepo)==200){
-                steamrepo_content<-content(steamrepo)
-                dfsteamrepo <- c(dfsteamrepo,steamrepo_content$reviews)
-                num <- num + 20
-        }else{
-                break
-        }
-}
-
-## Another approach to collect the data.
 dfsteamrepo <-data.frame()
 rawReviews <-data.frame()
 num = 20
-while(num<=100){  #Set limit
+while(num<=1000000){  #Set limit
         repos<- fromJSON(paste0(url_steam,'/',appid,'?json=1?offset=',num))
         cat("Offset now is", num)
+        cat("\n")
         reviews <- repos$reviews
         flatten(reviews,recursive = TRUE)
         # dfsteamrepo <- c(dfsteamrepo,steamrepo$reviews) 
-        rownames(repos$reviews) <-make.names(c(num:(num+19)),unique = TRUE) #Try to solve dumplicate row name issue
-        rawReviews <- rbind(rawReviews,repos$reviews)
+        rownames(repos$reviews) <-make.names(c((num-19):num),unique = TRUE) #Try to solve dumplicate row name issue
+        rownames(repos$reviews$author)<-make.names(c((num-19):num),unique = TRUE)
+        rawReviews<- rbind(rawReviews,repos$reviews)
         num <- num + 20
 }
+
+##Write data to a txt file
+write.table(rawReviews,"./rawData.txt", sep="\t")
+
+
+
